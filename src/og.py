@@ -60,6 +60,29 @@ class OutputGenerator:
         FileHelper.writeCSV("{}-page-{}-forms.csv".format(self.fileName, p),
                             csvFieldNames, csvData)
 
+    def _outputFormTranslate(self, page, p):
+        tt = None
+        tt = TextTranslater('auto', 'en', 'us-east-1')
+        csvData = []
+        for field in page.form.fields:
+            csvItem = []
+            if (field.key):
+                csvItem.append(tt.getTranslation(field.key.text))
+                csvItem.append(field.key.confidence)
+            else:
+                csvItem.append("")
+                csvItem.append("")
+            if (field.value):
+                csvItem.append(tt.getTranslation(field.value.text))
+                csvItem.append(field.value.confidence)
+            else:
+                csvItem.append("")
+                csvItem.append("")
+            csvData.append(csvItem)
+        csvFieldNames = ['Key', 'KeyConfidence', 'Value', 'ValueConfidence']
+        FileHelper.writeCSV("{}-page-{}-forms-translated.csv".format(self.fileName, p),
+                            csvFieldNames, csvData)
+
     def _outputTable(self, page, p):
 
         csvData = []
@@ -91,6 +114,27 @@ class OutputGenerator:
                 "{}-page-{}-table-{}-tables-pretty.txt".format(
                     self.fileName, p, table_number), pretty_table)
 
+    def _outputTablePrettyTranslate(self, page, p, table_format='github'):
+
+        tt = None
+        
+        tt = TextTranslater('auto', 'en', 'us-east-1')
+
+        for table_number, table in enumerate(page.tables):
+            rows_list = list()
+            for row in table.rows:
+                one_row = list()
+                for cell in row.cells:
+                    if cell.text != "":
+                        one_row = one_row + [tt.getTranslation(cell.text)]
+                    else:
+                        one_row = one_row + [cell.text]
+                rows_list.append(one_row)
+            pretty_table = tabulate(rows_list, tablefmt=table_format)
+            FileHelper.writeToFile(
+                "{}-page-{}-table-{}-tables-pretty-translated.txt".format(
+                    self.fileName, p, table_number), pretty_table)
+
     def run(self):
 
         if (not self.document.pages):
@@ -114,10 +158,12 @@ class OutputGenerator:
 
             if (self.forms):
                 self._outputForm(page, p)
+                self._outputFormTranslate(page, p)
 
             if (self.tables):
                 self._outputTable(page, p)
                 self._outputTablePretty(page, p)
+                self._outputTablePrettyTranslate(page, p)
 
             p = p + 1
 
@@ -202,7 +248,7 @@ class OutputGenerator:
             subText = text[start:end]
 
             if (insights):
-                self._insights(start, text, sentiment, syntax, entities,
+                self._insights(start, tt.getTranslation(subText), sentiment, syntax, entities,
                                keyPhrases, ta)
 
             if (medicalInsights):
@@ -268,3 +314,17 @@ class OutputGenerator:
                                               medicalInsights, translate, ta,
                                               tma, tt)
             p = p + 1
+        
+        #tt = None
+        #tt = TextTranslater('auto', 'en', 'us-east-1')
+        #p = 1
+        #if(translate):
+        #    for page in self.document.pages:
+        #        for line in page.lines:
+        #            for word in line.words:
+        #                print(word.text +"\n")
+        #                word.text = tt.getTranslation(word.text)
+
+        #    FileHelper.writeToFile("{}-response-translated.json".format(self.fileName),
+        #                       json.dumps(self.response))
+        

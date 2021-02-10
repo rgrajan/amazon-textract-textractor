@@ -95,6 +95,10 @@ class Word:
     def text(self):
         return self._text
 
+    @text.setter
+    def text(self, value):
+        self._text = value
+
     @property
     def block(self):
         return self._block
@@ -145,6 +149,10 @@ class Line:
     @property
     def text(self):
         return self._text
+
+    @text.setter
+    def text(self, value):
+        self._text = value
 
     @property
     def block(self):
