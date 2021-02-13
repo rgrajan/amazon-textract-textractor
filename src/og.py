@@ -160,7 +160,7 @@ class OutputGenerator:
             if (self.tables):
                 self._outputTable(page, p)
                 self._outputTablePretty(page, p)
-                self._outputFormTranslate(page, p)
+                self._outputTablePrettyTranslate(page, p)
 
             p = p + 1
 
